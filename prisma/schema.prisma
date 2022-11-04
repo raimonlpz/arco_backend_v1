@@ -1,0 +1,144 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// MODELS 
+
+model User {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  email   String   @unique
+  hash    String
+  profile Profile?
+
+  Fav   Fav? @relation(fields: [favId], references: [id])
+  favId Int? @unique
+
+  @@map("users")
+}
+
+model Profile {
+  id        Int      @id @default(autoincrement())
+  updatedAt DateTime @updatedAt
+
+  bio        String?
+  urls       String[]
+  profession String?
+  firstName  String?
+  lastName   String?
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int  @unique
+
+  followedBy Follows[] @relation("following")
+  following  Follows[] @relation("follower")
+
+  favorites     Fav[]
+  searches      Search[]
+  subscriptions Sub[]
+
+  @@map("profiles")
+}
+
+model Follows {
+  follower    Profile @relation("follower", fields: [followerId], references: [id])
+  followerId  Int
+  following   Profile @relation("following", fields: [followingId], references: [id])
+  followingId Int
+
+  @@id([followerId, followingId])
+}
+
+model Search {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  query     String
+
+  profile   Profile @relation(fields: [profileId], references: [id])
+  profileId Int
+  Fav       Fav?    @relation(fields: [favId], references: [id])
+  favId     Int?    @unique
+
+  @@map("searches")
+}
+
+model Sub {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile   Profile @relation(fields: [profileId], references: [id])
+  profileId Int
+
+  intent   NLP_Intent?
+  entities NLP_Entity[]
+  traits   NLP_Tag[]
+
+  @@map("subscriptions")
+}
+
+model Fav {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Profile   Profile @relation(fields: [profileId], references: [id])
+  profileId Int
+
+  intent   NLP_Intent?
+  entities NLP_Entity[]
+  traits   NLP_Tag[]
+
+  users    User?
+  searches Search?
+
+  @@map("favorites")
+}
+
+model NLP_Intent {
+  id      Int    @id @default(autoincrement())
+  witUuid String
+  name    String
+
+  Sub   Sub? @relation(fields: [subId], references: [id])
+  subId Int? @unique
+  Fav   Fav? @relation(fields: [favId], references: [id])
+  favId Int? @unique
+
+  @@map("intents")
+}
+
+model NLP_Entity {
+  id      Int    @id @default(autoincrement())
+  witUuid String
+  name    String
+
+  Sub   Sub? @relation(fields: [subId], references: [id])
+  subId Int?
+  Fav   Fav? @relation(fields: [favId], references: [id])
+  favId Int?
+
+  @@map("entities")
+}
+
+model NLP_Tag {
+  id      Int    @id @default(autoincrement())
+  witUuid String
+  name    String
+
+  Sub   Sub? @relation(fields: [subId], references: [id])
+  subId Int?
+  Fav   Fav? @relation(fields: [favId], references: [id])
+  favId Int?
+
+  @@map("tags")
+}
