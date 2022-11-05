@@ -18,4 +18,4 @@ const ENTITIES: Entity[] = [
   { id: '1134895654068401', name: 'CHAIN_fantom' },
 ];
 
-export { ENTITIES };
+export { ENTITIES, Entity };

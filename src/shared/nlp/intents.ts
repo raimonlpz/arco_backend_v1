@@ -15,4 +15,4 @@ const INTENTS: Intent[] = [
   { id: '784600309278248', name: 'TRANSACTION_API' },
 ];
 
-export { INTENTS };
+export { INTENTS, Intent };
