@@ -20,9 +20,6 @@ model User {
   hash    String
   profile Profile?
 
-  Fav   Fav? @relation(fields: [favId], references: [id])
-  favId Int? @unique
-
   @@map("users")
 }
 
@@ -43,9 +40,12 @@ model Profile {
   followedBy Follows[] @relation("following")
   following  Follows[] @relation("follower")
 
-  favorites     Fav[]
-  searches      Search[]
+  searches Search[]
+
   subscriptions Sub[]
+  favorites     Fav[]
+  userFavOf     FavUsers[] @relation("fav")
+  userFavs      FavUsers[] @relation("favOf")
 
   @@map("profiles")
 }
@@ -59,6 +59,15 @@ model Follows {
   @@id([followerId, followingId])
 }
 
+model FavUsers {
+  favOf   Profile @relation("favOf", fields: [favOfId], references: [id])
+  favOfId Int
+  fav     Profile @relation("fav", fields: [favId], references: [id])
+  favId   Int
+
+  @@id([favOfId, favId])
+}
+
 model Search {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
@@ -66,8 +75,8 @@ model Search {
 
   profile   Profile @relation(fields: [profileId], references: [id])
   profileId Int
-  Fav       Fav?    @relation(fields: [favId], references: [id])
-  favId     Int?    @unique
+
+  bookmarkedInFavs Fav[]
 
   @@map("searches")
 }
@@ -80,9 +89,9 @@ model Sub {
   profile   Profile @relation(fields: [profileId], references: [id])
   profileId Int
 
-  intent   NLP_Intent?
-  entities NLP_Entity[]
-  traits   NLP_Tag[]
+  intents  NLPIntent[]
+  entities NLPEntity[]
+  tags     NLPTag[]
 
   contracts HexAddress[]
 
@@ -94,56 +103,50 @@ model Fav {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  Profile   Profile @relation(fields: [profileId], references: [id])
+  profile   Profile @relation(fields: [profileId], references: [id])
   profileId Int
 
-  intent   NLP_Intent?
-  entities NLP_Entity[]
-  traits   NLP_Tag[]
+  intents  NLPIntent[]
+  entities NLPEntity[]
+  tags     NLPTag[]
 
   contracts HexAddress[]
 
-  users    User?
-  searches Search?
+  searches Search? @relation(fields: [searchId], references: [id])
+  searchId Int?
 
   @@map("favorites")
 }
 
-model NLP_Intent {
+model NLPIntent {
   id      Int    @id @default(autoincrement())
-  witUuid String
-  name    String
+  witUuid String @unique
+  name    String @unique
 
-  Sub   Sub? @relation(fields: [subId], references: [id])
-  subId Int? @unique
-  Fav   Fav? @relation(fields: [favId], references: [id])
-  favId Int? @unique
+  bookmarkedInSubs Sub[]
+  bookmarkedInFavs Fav[]
 
   @@map("intents")
 }
 
-model NLP_Entity {
+model NLPEntity {
   id      Int    @id @default(autoincrement())
-  witUuid String
-  name    String
+  witUuid String @unique
+  name    String @unique
 
-  Sub   Sub? @relation(fields: [subId], references: [id])
-  subId Int?
-  Fav   Fav? @relation(fields: [favId], references: [id])
-  favId Int?
+  bookmarkedInSubs Sub[]
+  bookmarkedInFavs Fav[]
 
   @@map("entities")
 }
 
-model NLP_Tag {
+model NLPTag {
   id      Int     @id @default(autoincrement())
-  witUuid String?
-  name    String
+  witUuid String? @unique
+  name    String  @unique
 
-  Sub   Sub? @relation(fields: [subId], references: [id])
-  subId Int?
-  Fav   Fav? @relation(fields: [favId], references: [id])
-  favId Int?
+  bookmarkedInSubs Sub[]
+  bookmarkedInFavs Fav[]
 
   @@map("tags")
 }
@@ -151,12 +154,10 @@ model NLP_Tag {
 model HexAddress {
   id       Int     @id @default(autoincrement())
   meta     String?
-  contract String
+  contract String  @unique
 
-  Fav   Fav? @relation(fields: [favId], references: [id])
-  favId Int?
-  Sub   Sub? @relation(fields: [subId], references: [id])
-  subId Int?
+  bookmarkedInSubs Sub[]
+  bookmarkedInFavs Fav[]
 
   @@map("addresses")
 }
