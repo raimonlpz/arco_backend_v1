@@ -42,12 +42,12 @@ model Profile {
   followedBy Follows[] @relation("following")
   following  Follows[] @relation("follower")
 
-  searches Search[]
-
+  searches      Search[]
   subscriptions Sub[]
-  favorites     Fav[]
-  userFavOf     FavUsers[] @relation("fav")
-  userFavs      FavUsers[] @relation("favOf")
+
+  favorites Fav[]
+  userFavOf FavUsers[] @relation("fav")
+  userFavs  FavUsers[] @relation("favOf")
 
   @@map("profiles")
 }
@@ -92,8 +92,8 @@ model Sub {
   profileId Int
 
   intents  NLPIntent[]
-  entities NLPEntity[]
-  tags     NLPTag[]
+  entities NLPEntityDecoded[]
+  tags     NLPTagDecoded[]
 
   contracts HexAddress[]
 
@@ -109,8 +109,8 @@ model Fav {
   profileId Int
 
   intents  NLPIntent[]
-  entities NLPEntity[]
-  tags     NLPTag[]
+  entities NLPEntityDecoded[]
+  tags     NLPTagDecoded[]
 
   contracts HexAddress[]
 
@@ -131,26 +131,44 @@ model NLPIntent {
   @@map("intents")
 }
 
-model NLPEntity {
-  id      Int      @id @default(autoincrement())
-  witUuid String   @unique
-  name    String   @unique
-  values  String[]
+model NLPEntityDecoded {
+  id     Int      @id @default(autoincrement())
+  values String[]
 
-  bookmarkedInSubs Sub[]
+  nlpEntity   NLPEntity @relation(fields: [nlpEntityId], references: [id])
+  nlpEntityId Int
+
   bookmarkedInFavs Fav[]
+  bookmarkedInSubs Sub[]
+}
+
+model NLPTagDecoded {
+  id     Int      @id @default(autoincrement())
+  values String[]
+
+  nlpTag   NLPTag @relation(fields: [nlpTagId], references: [id])
+  nlpTagId Int
+
+  bookmarkedInFavs Fav[]
+  bookmarkedInSubs Sub[]
+}
+
+model NLPEntity {
+  id      Int    @id @default(autoincrement())
+  witUuid String @unique
+  name    String @unique
+
+  nlpEntities NLPEntityDecoded[]
 
   @@map("entities")
 }
 
 model NLPTag {
-  id      Int      @id @default(autoincrement())
-  witUuid String?  @unique
-  name    String   @unique
-  values  String[]
+  id      Int     @id @default(autoincrement())
+  witUuid String? @unique
+  name    String  @unique
 
-  bookmarkedInSubs Sub[]
-  bookmarkedInFavs Fav[]
+  nlpTags NLPTagDecoded[]
 
   @@map("tags")
 }
