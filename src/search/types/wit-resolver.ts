@@ -1,8 +1,12 @@
+/**
+ * Types defined according to Wit.AI Standard API responses
+ */
+
 type WITResolver = {
-  entites: { string: Entity[] };
+  entities: { [key: string]: Entity[] };
   intents: Intent[];
   text: string;
-  traits: { string: Trait[] };
+  traits: { [key: string]: Trait[] };
 };
 
 type Entity = {

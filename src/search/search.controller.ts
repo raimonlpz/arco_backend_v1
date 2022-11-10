@@ -18,13 +18,13 @@ import { SearchService } from './search.service';
 export class SearchController {
   constructor(private searchService: SearchService) {}
 
-  // TO-DO
   @HttpCode(HttpStatus.OK)
   @Post('raw')
   rawSearch(@GetUser('id') userId: number, @Body() dto: RawSearchDto) {
     return this.searchService.searchRaw(userId, dto);
   }
 
+  // TO-DO
   @HttpCode(HttpStatus.OK)
   @Post('advanced')
   advancedSearch(
