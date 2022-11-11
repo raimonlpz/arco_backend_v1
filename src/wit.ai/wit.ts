@@ -4,6 +4,7 @@ export default class WIT {
   static query = (query: string) => `${this.BASE_URL}/message?q=${query}`;
   static intents = () => `${this.BASE_URL}/intents`;
   static entities = () => `${this.BASE_URL}/entities`;
+  static traits = () => `${this.BASE_URL}/traits`;
   static utterances = (limit: number) =>
     `${this.BASE_URL}/utterances?limit=${limit}`;
 }

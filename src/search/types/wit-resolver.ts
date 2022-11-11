@@ -3,17 +3,17 @@
  */
 
 type WITResolver = {
-  entities: { [key: string]: Entity[] };
-  intents: Intent[];
+  entities: { [key: string]: EntityOracle[] };
+  intents: IntentOracle[];
   text: string;
-  traits: { [key: string]: Trait[] };
+  traits: { [key: string]: TraitOracle[] };
 };
 
-type Entity = {
+type EntityOracle = {
   body: string;
   confidence: number;
   end: string;
-  entities: { string: Entity[] };
+  entities: { string: EntityOracle[] };
   id: string;
   name: string;
   role: string;
@@ -22,16 +22,16 @@ type Entity = {
   value: string;
 };
 
-type Intent = {
+type IntentOracle = {
   confidence: number;
   id: string;
   name: string;
 };
 
-type Trait = {
+type TraitOracle = {
   confidence: number;
   id: string;
   value: string;
 };
 
-export { WITResolver, Entity, Intent, Trait };
+export { WITResolver, EntityOracle, IntentOracle, TraitOracle };
