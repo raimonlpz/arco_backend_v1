@@ -6,7 +6,7 @@ import { AxiosResponse } from 'axios';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { RawSearchDto } from './dto';
-import WIT from 'src/wit.ai/wit';
+import WIT from 'src/shared/connectors/wit';
 import HttpErrors from './errors';
 import { MinimalError, WITResolver } from './types';
 import { MoralisExecutor } from './types/moralis-executor';
