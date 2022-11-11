@@ -28,9 +28,7 @@ export class SearchService implements IArcoEngine {
   async searchRaw(
     userId: number,
     dto: RawSearchDto
-  ): Promise<
-    MinimalError | any //{ fn: (...args: string[]) => string; spec: string }
-  > {
+  ): Promise<MinimalError | any> {
     const { query } = dto;
     try {
       const resolver = await this.resolveWitAIOracle(query).then((response) => {
@@ -68,7 +66,9 @@ export class SearchService implements IArcoEngine {
     fn: (...args: Args[]) => string;
     spec: string;
   } {
-    return WEB3Provider.resolveConnector(executor);
+    const resolvedMExecutor = WEB3Provider.resolveConnector(executor);
+    WEB3Provider.hydrateURL(executor, resolvedMExecutor);
+    return resolvedMExecutor;
   }
 
   // 4 - DDBB savings (write) by UserId

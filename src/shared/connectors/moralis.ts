@@ -8,6 +8,24 @@ class WEB3Provider {
   private static EVM_URL = 'https://deep-index.moralis.io/api/v2';
   private static SOL_URL = 'https://solana-gateway.moralis.io';
 
+  static hydrateURL = (
+    executor: MoralisExecutor,
+    url: {
+      fn: (...args: Args[]) => string;
+      spec: string;
+    }
+  ): string => {
+    // to-do
+    console.log(executor, url);
+    return '';
+  };
+
+  static resolvePatterns = () => {
+    //
+  };
+  static resolveChains = () => {
+    //
+  };
   // [GETs]
   static resolveConnector = (
     mConnector: MoralisExecutor
@@ -299,7 +317,7 @@ class WEB3Provider {
        ******************************* ¡Action NOT FOUND! **********************
        */
       default:
-        throw Error('Invalid action');
+        throw Error('Invalid actor');
     }
   };
 }
