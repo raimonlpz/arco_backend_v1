@@ -75,7 +75,7 @@ export class SearchService implements IArcoEngine {
           value: resolver.entities[key][0].value,
         });
       } else {
-        // ACTIONS (all)
+        // ACTIONS (all) - NFT, TRANSFERS, DEFI, BLOCKS, EVENTS...
         mExecutor.entities.actions.push(resolver.entities[key][0].id);
       }
     });
