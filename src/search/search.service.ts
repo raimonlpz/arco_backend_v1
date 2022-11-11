@@ -11,7 +11,7 @@ import HttpErrors from './errors';
 import { MinimalError, WITResolver } from './types';
 import { MoralisExecutor } from './types/moralis-executor';
 import IArcoEngine from './interfaces/arco-engine';
-import WEB3Provider from 'src/shared/connectors/moralis';
+import { Args, WEB3Provider } from 'src/shared/connectors/moralis';
 
 @Injectable()
 export class SearchService implements IArcoEngine {
@@ -21,13 +21,16 @@ export class SearchService implements IArcoEngine {
     private config: ConfigService
   ) {}
 
-  // TO-DO
+  // GUI search (advanced?)
   async searchAdvanced() {}
 
+  // NLP Search (raw)
   async searchRaw(
     userId: number,
     dto: RawSearchDto
-  ): Promise<MinimalError | ((...args: string[]) => string)> {
+  ): Promise<
+    MinimalError | any //{ fn: (...args: string[]) => string; spec: string }
+  > {
     const { query } = dto;
     try {
       const resolver = await this.resolveWitAIOracle(query).then((response) => {
@@ -36,7 +39,7 @@ export class SearchService implements IArcoEngine {
             response.data
           );
           const resolvedMExecutor = this.resolveMoralisExecutor(mExecutor);
-          return resolvedMExecutor;
+          return { resolvedMExecutor, fn: resolvedMExecutor.toString() };
         }
         return HttpErrors.WIT_AI();
       });
@@ -57,50 +60,14 @@ export class SearchService implements IArcoEngine {
 
   // 2
   unpackWitAIResolver(resolver: WITResolver): MoralisExecutor {
-    const mExecutor: MoralisExecutor = {
-      // Scheme
-      intent: resolver.intents[0].id, // Intent appended
-      entities: {
-        actions: [],
-        chains: [],
-        patterns: [],
-      },
-      traits: [],
-    };
-
-    // Entities appended
-    Object.keys(resolver.entities).forEach((key) => {
-      if (key.startsWith('CHAIN')) {
-        // CHAINS
-        mExecutor.entities.chains.push(resolver.entities[key][0].id);
-      } else if (key.startsWith('PATTERN')) {
-        // PATTERNS
-        mExecutor.entities.patterns.push({
-          pattern_id: resolver.entities[key][0].id,
-          value: resolver.entities[key][0].value,
-        });
-      } else {
-        // ACTIONS (all) - NFT, TRANSFERS, DEFI, BLOCKS, EVENTS...
-        mExecutor.entities.actions.push(resolver.entities[key][0].id);
-      }
-    });
-
-    // Traits appended
-    Object.keys(resolver.traits).forEach((key) => {
-      mExecutor.traits.push({
-        trait_id: resolver.traits[key][0].id,
-        trait_name: key,
-        value: resolver.traits[key][0].value,
-      });
-    });
-
-    return mExecutor;
+    return WIT.unpackResolver(resolver);
   }
 
   // 3 - Moralis Search
-  resolveMoralisExecutor(
-    executor: MoralisExecutor
-  ): (...args: string[]) => string {
+  resolveMoralisExecutor(executor: MoralisExecutor): {
+    fn: (...args: Args[]) => string;
+    spec: string;
+  } {
     return WEB3Provider.resolveConnector(executor);
   }
 

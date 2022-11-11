@@ -9,13 +9,15 @@ export default interface IArcoEngine {
   searchRaw(
     userId: number,
     dto: RawSearchDto
-  ): Promise<MinimalError | ((...args: string[]) => string)>;
+  ): Promise<
+    MinimalError | { fn: (...args: string[]) => string; spec: string }
+  >;
   // 1st - Api call to Resolve with WIT.ai user Query
   resolveWitAIOracle(query: string): Promise<AxiosResponse>;
   // 2nd - Unpack Wit.ai response <-> Moralis Exec.
   unpackWitAIResolver(resolver: WITResolver): MoralisExecutor;
   // 3rd - Translate Executor to a Functional Query to send against Moralis server
-  resolveMoralisExecutor(executor: MoralisExecutor): void;
+  resolveMoralisExecutor(executor: MoralisExecutor): any;
   // 4th - In parallel, save/write Data to Postgresql ddbb linked to User
   writeDB(): void;
 }
