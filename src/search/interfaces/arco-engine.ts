@@ -9,7 +9,7 @@ export default interface IArcoEngine {
   searchRaw(
     userId: number,
     dto: RawSearchDto
-  ): Promise<MinimalError | MoralisExecutor>;
+  ): Promise<MinimalError | ((...args: string[]) => string)>;
   // 1st - Api call to Resolve with WIT.ai user Query
   resolveWitAIOracle(query: string): Promise<AxiosResponse>;
   // 2nd - Unpack Wit.ai response <-> Moralis Exec.

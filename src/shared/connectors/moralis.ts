@@ -1,3 +1,5 @@
+import { MoralisExecutor } from 'src/search/types/moralis-executor';
+
 type MoralisConnector = {
   actionID: string;
   chainID: string;
@@ -13,9 +15,9 @@ export default class WEB3Provider {
 
   // [GETs]
   static resolveConnector = (
-    mConnector: MoralisConnector
+    mConnector: MoralisExecutor
   ): ((...args: string[]) => string) => {
-    switch (mConnector.actionID) {
+    switch (mConnector.entities.actions[0]) {
       /**
        ***************************** Balances *****************************
        */

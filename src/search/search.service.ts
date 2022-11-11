@@ -11,6 +11,7 @@ import HttpErrors from './errors';
 import { MinimalError, WITResolver } from './types';
 import { MoralisExecutor } from './types/moralis-executor';
 import IArcoEngine from './interfaces/arco-engine';
+import WEB3Provider from 'src/shared/connectors/moralis';
 
 @Injectable()
 export class SearchService implements IArcoEngine {
@@ -26,12 +27,16 @@ export class SearchService implements IArcoEngine {
   async searchRaw(
     userId: number,
     dto: RawSearchDto
-  ): Promise<MinimalError | MoralisExecutor> {
+  ): Promise<MinimalError | ((...args: string[]) => string)> {
     const { query } = dto;
     try {
       const resolver = await this.resolveWitAIOracle(query).then((response) => {
         if (response.status === 200) {
-          return this.unpackWitAIResolver(response.data);
+          const mExecutor: MoralisExecutor = this.unpackWitAIResolver(
+            response.data
+          );
+          const resolvedMExecutor = this.resolveMoralisExecutor(mExecutor);
+          return resolvedMExecutor;
         }
         return HttpErrors.WIT_AI();
       });
@@ -93,8 +98,10 @@ export class SearchService implements IArcoEngine {
   }
 
   // 3 - Moralis Search
-  resolveMoralisExecutor(executor: MoralisExecutor): void {
-    //
+  resolveMoralisExecutor(
+    executor: MoralisExecutor
+  ): (...args: string[]) => string {
+    return WEB3Provider.resolveConnector(executor);
   }
 
   // 4 - DDBB savings (write) by UserId
