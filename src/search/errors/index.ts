@@ -12,4 +12,10 @@ export default class HttpErrors {
   ): MinimalError => ({
     error: msg,
   });
+
+  static UNKNOWN = (
+    msg = 'Something went wrong: Contact platform Admin.'
+  ): MinimalError => ({
+    error: msg,
+  });
 }

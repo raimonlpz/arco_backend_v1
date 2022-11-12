@@ -21,7 +21,7 @@ export class SearchService implements IArcoEngine {
     private config: ConfigService
   ) {}
 
-  // 0 - User search (GUI -advanced- or NLP -raw-)
+  // 0 - User search (GUI -advanced- or NLP -raw text-)
   async searchAdvanced() {}
   // NLP Search (raw)
   async searchRaw(
@@ -43,7 +43,7 @@ export class SearchService implements IArcoEngine {
       }
       return HttpErrors.WIT_AI();
     } catch (e) {
-      return HttpErrors.WIT_AI();
+      return HttpErrors.UNKNOWN();
     }
   }
 
