@@ -31,17 +31,18 @@ export class SearchService implements IArcoEngine {
   ): Promise<MinimalError | any> {
     const { query } = dto;
     try {
-      const resolver = await this.resolveWitAIOracle(query).then((response) => {
-        if (response.status === 200) {
-          const mExecutor: MoralisExecutor = this.unpackWitAIResolver(
-            response.data
-          );
-          const resolvedMExecutor = this.resolveMoralisExecutor(mExecutor);
-          return { resolvedMExecutor: resolvedMExecutor.toString() };
+      const oracleResponse = await this.resolveWitAIOracle(query);
+      if (oracleResponse.status === 200) {
+        const mExecutor: MoralisExecutor = this.unpackWitAIResolver(
+          oracleResponse.data
+        );
+        const resolvedMExecutor = await this.resolveMoralisExecutor(mExecutor);
+        if (resolvedMExecutor.status === 200) {
+          return resolvedMExecutor.data.result;
         }
-        return HttpErrors.WIT_AI();
-      });
-      return resolver;
+        return HttpErrors.MORALIS();
+      }
+      return HttpErrors.WIT_AI();
     } catch (e) {
       return HttpErrors.WIT_AI();
     }
@@ -49,7 +50,7 @@ export class SearchService implements IArcoEngine {
 
   // 1
   async resolveWitAIOracle(query: string): Promise<AxiosResponse> {
-    return this.httpService.axiosRef.get(WIT.query(query), {
+    return await this.httpService.axiosRef.get(WIT.query(query), {
       headers: {
         Authorization: this.config.get('WIT_AI_KEY'),
       },
@@ -62,9 +63,14 @@ export class SearchService implements IArcoEngine {
   }
 
   // 3 - Moralis Search
-  resolveMoralisExecutor(executor: MoralisExecutor): string {
+  async resolveMoralisExecutor(executor: MoralisExecutor): Promise<any> {
     const resolvedMExecutor = WEB3Provider.resolveConnector(executor);
-    return WEB3Provider.hydrateURL(executor, resolvedMExecutor);
+    const url = WEB3Provider.hydrateURL(executor, resolvedMExecutor);
+    return await this.httpService.axiosRef.get(url, {
+      headers: {
+        'x-api-key': this.config.get('MORALIS_KEY'),
+      },
+    });
   }
 
   // 4 - DDBB savings (write) by UserId

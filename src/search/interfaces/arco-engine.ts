@@ -12,7 +12,7 @@ export default interface IArcoEngine {
   // 2nd - Unpack Wit.ai response <-> Moralis Exec.
   unpackWitAIResolver(resolver: WITResolver): MoralisExecutor;
   // 3rd - Translate Executor to a Functional Query to send against Moralis server
-  resolveMoralisExecutor(executor: MoralisExecutor): string;
+  resolveMoralisExecutor(executor: MoralisExecutor): Promise<any>;
   // 4th - In parallel, save/write Data to Postgresql ddbb linked to User
   writeDB(): void;
 }

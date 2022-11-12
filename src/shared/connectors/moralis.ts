@@ -329,7 +329,7 @@ class WEB3Provider {
       const patternIdx = executor.entities.patterns.findIndex(
         (pattern) => pattern.pattern_id == patternID
       );
-      if (patternIdx) {
+      if (patternIdx > -1) {
         const value = executor.entities.patterns[patternIdx].value;
         executor.entities.patterns.splice(patternIdx, 1);
         return value;
