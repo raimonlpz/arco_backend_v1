@@ -30,6 +30,10 @@ export class SearchService implements IArcoEngine {
   ): Promise<MinimalError | MoralisResponse> {
     const { query } = dto;
     try {
+      // ddbb
+      this.writeDB(userId, query);
+
+      // nlp search processing
       const oracleResponse = await this.resolveWitAIOracle(query);
       if (oracleResponse.status === 200) {
         const mExecutor: MoralisExecutor = this.unpackWitAIResolver(
@@ -75,5 +79,19 @@ export class SearchService implements IArcoEngine {
   }
 
   // 4th - In parallel, save/write Data to Postgresql ddbb linked to User
-  writeDB(): void {}
+  async writeDB(userId: number, query: string): Promise<void> {
+    // first we need the profile associated to User
+    const userProfile = await this.prisma.profile.findUnique({
+      where: {
+        userId,
+      },
+    });
+    // then we get the Profile ID and use it to create new Search
+    await this.prisma.search.create({
+      data: {
+        query,
+        profileId: userProfile.id,
+      },
+    });
+  }
 }

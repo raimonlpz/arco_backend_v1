@@ -17,5 +17,5 @@ export default interface IArcoEngine {
   // 3rd - Translate Executor to a Functional Query to send against Moralis server
   resolveMoralisExecutor(executor: MoralisExecutor): Promise<AxiosResponse>;
   // 4th - In parallel, save/write Data to Postgresql ddbb linked to User
-  writeDB(): void;
+  writeDB(userId: number, query: string): Promise<void>;
 }
