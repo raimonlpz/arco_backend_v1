@@ -1,6 +1,10 @@
 import { WITResolver } from 'src/search/types';
 import { MoralisExecutor } from 'src/search/types/moralis-executor';
 
+/**
+ *  Endpoints Reference: https://wit.ai/
+ */
+
 export default class WIT {
   private static BASE_URL = 'https://api.wit.ai';
 

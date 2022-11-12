@@ -1,7 +1,7 @@
 import { MoralisExecutor } from 'src/search/types/moralis-executor';
 
 /**
- * Reference: https://docs.moralis.io/reference
+ *  Endpoints Reference: https://docs.moralis.io/reference
  */
 
 class WEB3Provider {
@@ -23,9 +23,51 @@ class WEB3Provider {
   static resolvePatterns = () => {
     //
   };
-  static resolveChains = () => {
-    //
+
+  // Hex code for chains -> https://docs.moralis.io/docs/what-is-streams-api-1#supported-chains
+  static resolveChains = (chainID: string): string => {
+    switch (chainID) {
+      // Arbitrum
+      case '1306660666757475':
+        return '0x66eed';
+      // Avalanche
+      case '2033966263465530':
+        return '0xa86a';
+      // Binance Chain
+      case '455885466646961':
+        return '0x38';
+      // Cronos
+      case '477600647673720':
+        return '0x19';
+      // Ethereum
+      case '1564560644009223':
+        return '0x1';
+      // Fantom
+      case '1127734044804114':
+        return '0xfa';
+      // Goerli (testnet)
+      case '666447601523052':
+        return '0x5';
+      // Mumbai (testnet)
+      case '808671833774231':
+        return '0x13881';
+      // Polygon
+      case '1176377562956057':
+        return '0x89';
+      // Solana
+      case '506186854885784':
+        return ''; // diff endpoints
+      // Optimism
+      case '1071244096884678':
+        return '0xa';
+      // Ronin
+      case '1834632213538082':
+        return '0x7e4';
+      default:
+        throw Error('Unknown chain');
+    }
   };
+
   // [GETs]
   static resolveConnector = (
     mConnector: MoralisExecutor
@@ -64,8 +106,13 @@ class WEB3Provider {
       // DEFI - Get pair address
       case '777485370015491':
         return {
-          fn: ({ chain = 'eth', exchange = 'uniswapv3', token0, token1 }) =>
-            `${this.EVM_URL}/${token0}/${token1}/pairAddress?chain=${chain}&exchange=${exchange}`,
+          fn: ({
+            chain = 'eth',
+            exchange = 'uniswapv3',
+            token_pair1,
+            token_pair2,
+          }) =>
+            `${this.EVM_URL}/${token_pair1}/${token_pair2}/pairAddress?chain=${chain}&exchange=${exchange}`,
           spec: 'chain,exchange,token0,token1',
         };
       // DEFI - Get pair reserves
@@ -329,8 +376,8 @@ type Args = {
   blockID?: string;
   exchange?: string;
   token?: string;
-  token0?: string;
-  token1?: string;
+  token_pair1?: string;
+  token_pair2?: string;
   wallet?: string;
   tokenID?: string;
   blockN?: string;
