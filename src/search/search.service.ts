@@ -11,7 +11,7 @@ import HttpErrors from './errors';
 import { MinimalError, WITResolver } from './types';
 import { MoralisExecutor } from './types/moralis-executor';
 import IArcoEngine from './interfaces/arco-engine';
-import { Args, WEB3Provider } from 'src/shared/connectors/moralis';
+import { WEB3Provider } from 'src/shared/connectors/moralis';
 
 @Injectable()
 export class SearchService implements IArcoEngine {
@@ -37,7 +37,7 @@ export class SearchService implements IArcoEngine {
             response.data
           );
           const resolvedMExecutor = this.resolveMoralisExecutor(mExecutor);
-          return { resolvedMExecutor, fn: resolvedMExecutor.toString() };
+          return { resolvedMExecutor: resolvedMExecutor.toString() };
         }
         return HttpErrors.WIT_AI();
       });
@@ -62,13 +62,9 @@ export class SearchService implements IArcoEngine {
   }
 
   // 3 - Moralis Search
-  resolveMoralisExecutor(executor: MoralisExecutor): {
-    fn: (...args: Args[]) => string;
-    spec: string;
-  } {
+  resolveMoralisExecutor(executor: MoralisExecutor): string {
     const resolvedMExecutor = WEB3Provider.resolveConnector(executor);
-    WEB3Provider.hydrateURL(executor, resolvedMExecutor);
-    return resolvedMExecutor;
+    return WEB3Provider.hydrateURL(executor, resolvedMExecutor);
   }
 
   // 4 - DDBB savings (write) by UserId

@@ -1,77 +1,21 @@
 import { MoralisExecutor } from 'src/search/types/moralis-executor';
 
 /**
- *  Endpoints Reference: https://docs.moralis.io/reference
+ *  Endpoints Reference: https://docs.moralis.io/reference (Web3 Provider)
  */
 
 class WEB3Provider {
   private static EVM_URL = 'https://deep-index.moralis.io/api/v2';
   private static SOL_URL = 'https://solana-gateway.moralis.io';
 
-  static hydrateURL = (
-    executor: MoralisExecutor,
-    url: {
-      fn: (...args: Args[]) => string;
-      spec: string;
-    }
-  ): string => {
-    // to-do
-    console.log(executor, url);
-    return '';
-  };
-
-  static resolvePatterns = () => {
-    //
-  };
-
-  // Hex code for chains -> https://docs.moralis.io/docs/what-is-streams-api-1#supported-chains
-  static resolveChains = (chainID: string): string => {
-    switch (chainID) {
-      // Arbitrum
-      case '1306660666757475':
-        return '0x66eed';
-      // Avalanche
-      case '2033966263465530':
-        return '0xa86a';
-      // Binance Chain
-      case '455885466646961':
-        return '0x38';
-      // Cronos
-      case '477600647673720':
-        return '0x19';
-      // Ethereum
-      case '1564560644009223':
-        return '0x1';
-      // Fantom
-      case '1127734044804114':
-        return '0xfa';
-      // Goerli (testnet)
-      case '666447601523052':
-        return '0x5';
-      // Mumbai (testnet)
-      case '808671833774231':
-        return '0x13881';
-      // Polygon
-      case '1176377562956057':
-        return '0x89';
-      // Solana
-      case '506186854885784':
-        return ''; // diff endpoints
-      // Optimism
-      case '1071244096884678':
-        return '0xa';
-      // Ronin
-      case '1834632213538082':
-        return '0x7e4';
-      default:
-        throw Error('Unknown chain');
-    }
-  };
-
-  // [GETs]
+  /**
+   *
+   * @param mConnector
+   * @returns API call specification + URL templates to be hydrated with params.
+   */
   static resolveConnector = (
     mConnector: MoralisExecutor
-  ): { fn: (...args: Args[]) => string; spec: string } => {
+  ): { fn: (args: Args) => string; spec: string } => {
     switch (mConnector.entities.actions[0]) {
       /**
        ***************************** Balances *****************************
@@ -113,7 +57,7 @@ class WEB3Provider {
             token_pair2,
           }) =>
             `${this.EVM_URL}/${token_pair1}/${token_pair2}/pairAddress?chain=${chain}&exchange=${exchange}`,
-          spec: 'chain,exchange,token0,token1',
+          spec: 'chain,exchange,token_pair1,token_pair2',
         };
       // DEFI - Get pair reserves
       case '692396802308195':
@@ -367,6 +311,162 @@ class WEB3Provider {
         throw Error('Invalid actor');
     }
   };
+
+  /**
+   *
+   * @param executor
+   * @param url
+   * @returns String with URL composed ready to be used against Moralis server (Web3 Provider)
+   */
+  static hydrateURL = (
+    executor: MoralisExecutor,
+    url: {
+      fn: (args: Args) => string;
+      spec: string;
+    }
+  ): string => {
+    const pattern = (patternID: string, def: string) => {
+      const patternIdx = executor.entities.patterns.findIndex(
+        (pattern) => pattern.pattern_id == patternID
+      );
+      if (patternIdx) {
+        const value = executor.entities.patterns[patternIdx].value;
+        executor.entities.patterns.splice(patternIdx, 1);
+        return value;
+      }
+      return def;
+    };
+    const spec = url.spec.split(',');
+    const params: Args = {};
+    spec.forEach((param) => {
+      switch (param) {
+        case 'chain':
+          if (executor.entities.chains.length > 0) {
+            params[param] = this.resolveChain(executor.entities.chains[0]);
+          } else {
+            params[param] = DEFAULTS.CHAIN;
+          }
+          break;
+        case 'address':
+        case 'wallet':
+        case 'token':
+        case 'token_pair1':
+        case 'token_pair2':
+        case 'owner':
+        case 'spender':
+          // PATTERN_by_wallet_or_contract
+          params[param] = pattern('470228255107181', DEFAULTS.ADDRESS);
+          break;
+        case 'date':
+          // PATTERN_from_to_date
+          params[param] = pattern('663110085531183', DEFAULTS.DATE);
+          break;
+        case 'blockID':
+          // PATTERN_block_id
+          params[param] = pattern('3394400600885983', DEFAULTS.BLOCK_ID);
+          break;
+        case 'exchange':
+          // PATTERN_exchange
+          params[param] = pattern('661054248982179', DEFAULTS.EXCHANGE);
+          break;
+        case 'tokenID':
+          // PATTERN_by_token_id
+          params[param] = pattern('686278616170279', DEFAULTS.TOKEN_ID);
+          break;
+        case 'blockN':
+        case 'from':
+        case 'to':
+          // PATTERN_from_to_block
+          params[param] = pattern('785687105835106', DEFAULTS.BLOCK_ID);
+          break;
+        case 'filter':
+          // Default (by now)
+          params[param] = 'global';
+          break;
+        case 'descriptors':
+          // PATTERN_nft_free_search
+          params[param] = pattern('1133498020610082', DEFAULTS.FREE_SEARCH);
+          break;
+        case 'domain':
+          // PATTERN_uns_domain
+          params[param] = pattern('855884608780237', DEFAULTS.UNS_DOM);
+          break;
+        case 'symbol':
+          // PATTERN_by_token_symbol
+          params[param] = pattern('1153808938550177', DEFAULTS.SYMBOL);
+          break;
+        case 'hash':
+          // PATTERN_transaction_hash
+          params[param] = pattern('1195082887748742', DEFAULTS.HASH);
+          break;
+        default:
+          return;
+      }
+    });
+    return url.fn(params);
+  };
+
+  /**
+   *
+   * @param chainID
+   * @returns Hex code for chains -> https://docs.moralis.io/docs/what-is-streams-api-1#supported-chains
+   */
+  static resolveChain = (chainID: string): string => {
+    switch (chainID) {
+      // Arbitrum
+      case '1306660666757475':
+        return '0x66eed';
+      // Avalanche
+      case '2033966263465530':
+        return '0xa86a';
+      // Binance Chain
+      case '455885466646961':
+        return '0x38';
+      // Cronos
+      case '477600647673720':
+        return '0x19';
+      // Ethereum
+      case '1564560644009223':
+        return '0x1';
+      // Fantom
+      case '1127734044804114':
+        return '0xfa';
+      // Goerli (testnet)
+      case '666447601523052':
+        return '0x5';
+      // Mumbai (testnet)
+      case '808671833774231':
+        return '0x13881';
+      // Polygon
+      case '1176377562956057':
+        return '0x89';
+      // Solana
+      case '506186854885784':
+        return ''; // diff endpoints
+      // Optimism
+      case '1071244096884678':
+        return '0xa';
+      // Ronin
+      case '1834632213538082':
+        return '0x7e4';
+      default:
+        throw Error('Unknown chain');
+    }
+  };
+}
+
+class DEFAULTS {
+  static CHAIN = '0x1';
+  static ADDRESS = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
+  static DATE = Date.now().toString();
+  static BLOCK_ID = '15897680';
+  static EXCHANGE = 'uniswapv2';
+  static TOKEN_ID = '1';
+  static FREE_SEARCH = 'pixel-art avatars';
+  static UNS_DOM = 'matt.crypto';
+  static SYMBOL = 'GNO';
+  static HASH =
+    '0x56e98b5cb905597e6e09cab388bc9cf7e676f8ff6a19b08e12c0c91dfab872ab';
 }
 
 type Args = {

@@ -205,6 +205,14 @@ const ENTITIES: Entity[] = [
     id: '855884608780237',
     name: 'PATTERN_uns_domain',
   },
+  {
+    id: '661054248982179',
+    name: 'PATTERN_exchange',
+  },
+  {
+    id: '1195082887748742',
+    name: 'PATTERN_transaction_hash',
+  },
   /**
    ******************************************** RESOLVERS **********************************************
    */
