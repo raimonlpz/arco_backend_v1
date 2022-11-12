@@ -389,7 +389,7 @@ class WEB3Provider {
           break;
         case 'domain':
           // PATTERN_uns_domain
-          params[param] = pattern('855884608780237', DEFAULTS.UNS_DOM);
+          params[param] = pattern('855884608780237', DEFAULTS.UNS_DOMAIN);
           break;
         case 'symbol':
           // PATTERN_by_token_symbol
@@ -463,7 +463,7 @@ class DEFAULTS {
   static EXCHANGE = 'uniswapv2';
   static TOKEN_ID = '1';
   static FREE_SEARCH = 'pixel-art avatars';
-  static UNS_DOM = 'matt.crypto';
+  static UNS_DOMAIN = 'matt.crypto';
   static SYMBOL = 'GNO';
   static HASH =
     '0x56e98b5cb905597e6e09cab388bc9cf7e676f8ff6a19b08e12c0c91dfab872ab';

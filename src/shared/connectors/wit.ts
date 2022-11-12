@@ -1,4 +1,4 @@
-import { WITResolver } from 'src/search/types';
+import { EntityOracle, WITResolver } from 'src/search/types';
 import { MoralisExecutor } from 'src/search/types/moralis-executor';
 
 /**
@@ -20,7 +20,7 @@ export default class WIT {
   static unpackResolver = (resolver: WITResolver): MoralisExecutor => {
     const mExecutor: MoralisExecutor = {
       // Scheme
-      intent: resolver.intents[0].id, // Intent appended
+      intent: resolver.intents[0].id, // Intent appended (max. 1)
       entities: {
         actions: [],
         chains: [],
@@ -29,29 +29,43 @@ export default class WIT {
       traits: [],
     };
 
-    // Entities appended
-    Object.keys(resolver.entities).forEach((key) => {
-      if (key.startsWith('CHAIN')) {
-        // CHAINS
-        mExecutor.entities.chains.push(resolver.entities[key][0].id);
-      } else if (key.startsWith('PATTERN')) {
-        // PATTERNS
-        mExecutor.entities.patterns.push({
-          pattern_id: resolver.entities[key][0].id,
-          value: resolver.entities[key][0].value,
+    const scanEntities = (entities: { [key: string]: EntityOracle[] }) => {
+      // Entities appended
+      Object.keys(entities).forEach((key) => {
+        if (key.startsWith('CHAIN')) {
+          // CHAINS
+          mExecutor.entities.chains.push(entities[key][0].id); // (max. 1 -first-)
+        } else if (key.startsWith('PATTERN')) {
+          // PATTERNS
+          entities[key].forEach((nestedKey) => {
+            mExecutor.entities.patterns.push({
+              pattern_id: nestedKey.id,
+              value: nestedKey.value,
+            });
+          });
+        } else {
+          // ACTIONS (all) - NFT, TRANSFERS, DEFI, BLOCKS, EVENTS...
+          mExecutor.entities.actions.push(entities[key][0].id); // (max. 1 -first-)
+        }
+        // Nested entities check -> Recursive hack
+        resolver.entities[key].forEach((nestedKey) => {
+          if (Object.keys(nestedKey.entities).length > 0) {
+            scanEntities(nestedKey.entities);
+          }
         });
-      } else {
-        // ACTIONS (all) - NFT, TRANSFERS, DEFI, BLOCKS, EVENTS...
-        mExecutor.entities.actions.push(resolver.entities[key][0].id);
-      }
-    });
+      });
+    };
+
+    scanEntities(resolver.entities);
 
     // Traits appended
     Object.keys(resolver.traits).forEach((key) => {
-      mExecutor.traits.push({
-        trait_id: resolver.traits[key][0].id,
-        trait_name: key,
-        value: resolver.traits[key][0].value,
+      resolver.traits[key].forEach((nestedKey) => {
+        mExecutor.traits.push({
+          trait_id: nestedKey.id,
+          trait_name: key,
+          value: nestedKey.value,
+        });
       });
     });
 

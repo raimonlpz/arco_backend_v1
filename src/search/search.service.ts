@@ -8,7 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RawSearchDto } from './dto';
 import WIT from 'src/shared/connectors/wit';
 import HttpErrors from './errors';
-import { MinimalError, WITResolver } from './types';
+import { MinimalError, MoralisResponse, WITResolver } from './types';
 import { MoralisExecutor } from './types/moralis-executor';
 import IArcoEngine from './interfaces/arco-engine';
 import { WEB3Provider } from 'src/shared/connectors/moralis';
@@ -21,14 +21,13 @@ export class SearchService implements IArcoEngine {
     private config: ConfigService
   ) {}
 
-  // GUI search (advanced?)
+  // 0 - User search (GUI -advanced- or NLP -raw-)
   async searchAdvanced() {}
-
   // NLP Search (raw)
   async searchRaw(
     userId: number,
     dto: RawSearchDto
-  ): Promise<MinimalError | any> {
+  ): Promise<MinimalError | MoralisResponse> {
     const { query } = dto;
     try {
       const oracleResponse = await this.resolveWitAIOracle(query);
@@ -38,7 +37,7 @@ export class SearchService implements IArcoEngine {
         );
         const resolvedMExecutor = await this.resolveMoralisExecutor(mExecutor);
         if (resolvedMExecutor.status === 200) {
-          return resolvedMExecutor.data.result;
+          return resolvedMExecutor.data as MoralisResponse;
         }
         return HttpErrors.MORALIS();
       }
@@ -48,7 +47,7 @@ export class SearchService implements IArcoEngine {
     }
   }
 
-  // 1
+  // 1st - Api call to Resolve with WIT.ai user Query
   async resolveWitAIOracle(query: string): Promise<AxiosResponse> {
     return await this.httpService.axiosRef.get(WIT.query(query), {
       headers: {
@@ -57,13 +56,15 @@ export class SearchService implements IArcoEngine {
     });
   }
 
-  // 2
+  // 2nd - Unpack Wit.ai response <-> Moralis Exec.
   unpackWitAIResolver(resolver: WITResolver): MoralisExecutor {
     return WIT.unpackResolver(resolver);
   }
 
-  // 3 - Moralis Search
-  async resolveMoralisExecutor(executor: MoralisExecutor): Promise<any> {
+  // 3rd - Translate Executor to a Functional Query to send against Moralis server
+  async resolveMoralisExecutor(
+    executor: MoralisExecutor
+  ): Promise<AxiosResponse> {
     const resolvedMExecutor = WEB3Provider.resolveConnector(executor);
     const url = WEB3Provider.hydrateURL(executor, resolvedMExecutor);
     return await this.httpService.axiosRef.get(url, {
@@ -73,6 +74,6 @@ export class SearchService implements IArcoEngine {
     });
   }
 
-  // 4 - DDBB savings (write) by UserId
+  // 4th - In parallel, save/write Data to Postgresql ddbb linked to User
   writeDB(): void {}
 }
