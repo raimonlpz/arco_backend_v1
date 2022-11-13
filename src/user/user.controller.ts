@@ -20,7 +20,7 @@ export class UserController {
 
   @HttpCode(HttpStatus.OK)
   @Get('me')
-  getMe(@GetUser() user: User /*, @GetUser('email') email: string*/) {
+  getMe(@GetUser() user: User) {
     return user;
   }
 

@@ -31,11 +31,6 @@ export class AuthService {
           email: dto.email,
           hash,
         },
-        // select: {
-        //   id: true,
-        //   email: true,
-        //   createdAt: true,
-        // },
       });
 
       // we append fresh profile to User
@@ -45,8 +40,7 @@ export class AuthService {
         },
       });
 
-      // return the saved user
-      // delete user.hash;
+      // return the saved user -> delete user.hash?
       return await this.signToken(user.id, user.email);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {

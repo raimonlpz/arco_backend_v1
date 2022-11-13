@@ -4,6 +4,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { SearchModule } from './search/search.module';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { SearchModule } from './search/search.module';
     UserModule,
     SearchModule,
     PrismaModule,
+    ProfileModule,
   ],
   controllers: [],
   providers: [],
