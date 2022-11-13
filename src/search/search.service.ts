@@ -197,12 +197,6 @@ export class SearchService implements IArcoEngine {
     /**
      *************************** Entity: PATTERNS **************************
      */
-    await Promise.all([
-      ...mExecutor.entities.patterns.map(
-        async (p) => await writeEntityPattern(p)
-      ),
-    ]);
-
     const writeEntityPattern = async (p: {
       pattern_id: string;
       value: string;
@@ -228,6 +222,11 @@ export class SearchService implements IArcoEngine {
         },
       });
     };
+    await Promise.all([
+      ...mExecutor.entities.patterns.map(
+        async (p) => await writeEntityPattern(p)
+      ),
+    ]);
   }
 
   /**
