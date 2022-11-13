@@ -1,4 +1,4 @@
-import { IsArray, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class EditProfileDto {
   @IsString()
@@ -21,7 +21,7 @@ export class EditProfileDto {
   @IsOptional()
   urls?: string[];
 
-  @IsString()
+  @IsInt()
   @IsOptional()
   hexAddressId?: number;
 }
