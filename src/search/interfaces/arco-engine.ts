@@ -15,7 +15,16 @@ export default interface IArcoEngine {
   // 2nd - Unpack Wit.ai response <-> Moralis Exec.
   unpackWitAIResolver(resolver: WITResolver): MoralisExecutor;
   // 3rd - Translate Executor to a Functional Query to send against Moralis server
-  resolveMoralisExecutor(executor: MoralisExecutor): Promise<AxiosResponse>;
-  // 4th - In parallel, save/write Data to Postgresql ddbb linked to User
-  writeDB(userId: number, query: string): Promise<void>;
+  resolveMoralisExecutor(
+    userId: number,
+    mExecutor: MoralisExecutor,
+    query: string
+  ): Promise<AxiosResponse>;
+  // 4th - In parallel, save/write more Metadata to Postgresql ddbb linked to User
+  writeDB(
+    userId: number,
+    mExecutor: MoralisExecutor,
+    query: string,
+    urlComposed: string
+  ): Promise<void>;
 }

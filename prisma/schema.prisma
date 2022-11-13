@@ -42,12 +42,12 @@ model Profile {
   followedBy Follows[] @relation("following")
   following  Follows[] @relation("follower")
 
-  searches      Search[]
-  subscriptions Sub[]
+  searches_history Search[]
 
-  favorites Fav[]
-  userFavOf FavUsers[] @relation("fav")
-  userFavs  FavUsers[] @relation("favOf")
+  subscriptions Sub[]
+  favorites     Fav[]
+  userFavOf     FavUsers[] @relation("fav")
+  userFavs      FavUsers[] @relation("favOf")
 
   @@map("profiles")
 }
@@ -80,6 +80,10 @@ model Search {
 
   bookmarkedInFavs Fav[]
 
+  intents  NLPIntentDecoded[]
+  entities NLPEntityDecoded[]
+  tags     NLPTagDecoded[]
+
   @@map("searches")
 }
 
@@ -91,7 +95,7 @@ model Sub {
   profile   Profile @relation(fields: [profileId], references: [id])
   profileId Int
 
-  intents  NLPIntent[]
+  intents  NLPIntentDecoded[]
   entities NLPEntityDecoded[]
   tags     NLPTagDecoded[]
 
@@ -108,7 +112,7 @@ model Fav {
   profile   Profile @relation(fields: [profileId], references: [id])
   profileId Int
 
-  intents  NLPIntent[]
+  intents  NLPIntentDecoded[]
   entities NLPEntityDecoded[]
   tags     NLPTagDecoded[]
 
@@ -125,32 +129,9 @@ model NLPIntent {
   witUuid String @unique
   name    String @unique
 
-  bookmarkedInSubs Sub[]
-  bookmarkedInFavs Fav[]
+  nlpIntents NLPIntentDecoded[]
 
   @@map("intents")
-}
-
-model NLPEntityDecoded {
-  id     Int      @id @default(autoincrement())
-  values String[]
-
-  nlpEntity   NLPEntity @relation(fields: [nlpEntityId], references: [id])
-  nlpEntityId Int
-
-  bookmarkedInFavs Fav[]
-  bookmarkedInSubs Sub[]
-}
-
-model NLPTagDecoded {
-  id     Int      @id @default(autoincrement())
-  values String[]
-
-  nlpTag   NLPTag @relation(fields: [nlpTagId], references: [id])
-  nlpTagId Int
-
-  bookmarkedInFavs Fav[]
-  bookmarkedInSubs Sub[]
 }
 
 model NLPEntity {
@@ -171,6 +152,54 @@ model NLPTag {
   nlpTags NLPTagDecoded[]
 
   @@map("tags")
+}
+
+model NLPIntentDecoded {
+  id    Int    @id @default(autoincrement())
+  value String
+
+  nlpIntent   NLPIntent @relation(fields: [nlpIntentId], references: [id])
+  nlpIntentId Int
+
+  bookmarkedInSubs Sub[]
+  bookmarkedInFavs Fav[]
+
+  Search   Search @relation(fields: [searchId], references: [id])
+  searchId Int
+
+  @@map("intents_decoded")
+}
+
+model NLPEntityDecoded {
+  id     Int      @id @default(autoincrement())
+  values String[]
+
+  nlpEntity   NLPEntity @relation(fields: [nlpEntityId], references: [id])
+  nlpEntityId Int
+
+  bookmarkedInFavs Fav[]
+  bookmarkedInSubs Sub[]
+
+  Search   Search @relation(fields: [searchId], references: [id])
+  searchId Int
+
+  @@map("entities_decoded")
+}
+
+model NLPTagDecoded {
+  id     Int      @id @default(autoincrement())
+  values String[]
+
+  nlpTag   NLPTag @relation(fields: [nlpTagId], references: [id])
+  nlpTagId Int
+
+  bookmarkedInFavs Fav[]
+  bookmarkedInSubs Sub[]
+
+  Search   Search @relation(fields: [searchId], references: [id])
+  searchId Int
+
+  @@map("tags_decoded")
 }
 
 model HexAddress {

@@ -12,6 +12,9 @@ import { MinimalError, MoralisResponse, WITResolver } from './types';
 import { MoralisExecutor } from './types/moralis-executor';
 import IArcoEngine from './interfaces/arco-engine';
 import { WEB3Provider } from 'src/shared/connectors/moralis';
+import { INTENTS } from 'src/shared/nlp/intents';
+import { Search } from '@prisma/client';
+import { ENTITIES } from 'src/shared/nlp/entities';
 
 @Injectable()
 export class SearchService implements IArcoEngine {
@@ -30,17 +33,19 @@ export class SearchService implements IArcoEngine {
   ): Promise<MinimalError | MoralisResponse> {
     const { query } = dto;
     try {
-      // ddbb
-      this.writeDB(userId, query);
-
       // nlp search processing
       const oracleResponse = await this.resolveWitAIOracle(query);
       if (oracleResponse.status === 200) {
         const mExecutor: MoralisExecutor = this.unpackWitAIResolver(
           oracleResponse.data
         );
-        const resolvedMExecutor = await this.resolveMoralisExecutor(mExecutor);
+        const resolvedMExecutor = await this.resolveMoralisExecutor(
+          userId,
+          mExecutor,
+          query
+        );
         if (resolvedMExecutor.status === 200) {
+          // TO-DO: compose Moralis http response with Wit.ai action scheme to acknowledge the front-end about types
           return resolvedMExecutor.data as MoralisResponse;
         }
         return HttpErrors.MORALIS();
@@ -67,10 +72,22 @@ export class SearchService implements IArcoEngine {
 
   // 3rd - Translate Executor to a Functional Query to send against Moralis server
   async resolveMoralisExecutor(
-    executor: MoralisExecutor
+    userId: number,
+    mExecutor: MoralisExecutor,
+    query: string
   ): Promise<AxiosResponse> {
-    const resolvedMExecutor = WEB3Provider.resolveConnector(executor);
-    const url = WEB3Provider.hydrateURL(executor, resolvedMExecutor);
+    const resolvedMExecutor = WEB3Provider.resolveConnector(mExecutor);
+    const url = WEB3Provider.hydrateURL(
+      JSON.parse(JSON.stringify(mExecutor)), // object deep cloned to splice patterns for URL composition without affecting data to store in DDBB
+      resolvedMExecutor
+    );
+    try {
+      // ddbb writes exec.
+      await this.writeDB(userId, mExecutor, query, url);
+    } catch (e) {
+      throw Error(HttpErrors.DDBB().error);
+    }
+    // return api data
     return await this.httpService.axiosRef.get(url, {
       headers: {
         'x-api-key': this.config.get('MORALIS_KEY'),
@@ -78,19 +95,170 @@ export class SearchService implements IArcoEngine {
     });
   }
 
-  // 4th - In parallel, save/write Data to Postgresql ddbb linked to User
-  async writeDB(userId: number, query: string): Promise<void> {
+  // 4th - In parallel, save/write metadata to Postgresql ddbb linked to User
+  async writeDB(
+    userId: number,
+    mExecutor: MoralisExecutor,
+    query: string,
+    urlComposed: string
+  ): Promise<void> {
     // first we need the profile associated to User
     const userProfile = await this.prisma.profile.findUnique({
       where: {
         userId,
       },
     });
-    // then we get the Profile ID and use it to create new Search
-    await this.prisma.search.create({
+    const search = await this.saveRawSearch(userProfile.id, urlComposed);
+    this.saveIntentMeta(search.id, query, mExecutor);
+    this.saveEntityMeta(search.id, query, mExecutor);
+    // TO-DO: this.saveTagsMeta
+  }
+
+  /**
+   * - Save URL final search -
+   * @param profileId
+   * @param url
+   */
+  async saveRawSearch(profileId: number, url: string): Promise<Search> {
+    // we get the Profile ID and use it to create new Search -url- composed
+    return await this.prisma.search.create({
       data: {
-        query,
-        profileId: userProfile.id,
+        query: url,
+        profileId: profileId,
+      },
+    });
+  }
+
+  /**
+   * Func to save Entity -metadata- (actions + chains + patterns) to DDBB
+   * @param searchId
+   * @param query
+   * @param mExecutor
+   */
+  async saveEntityMeta(
+    searchId: number,
+    query: string,
+    mExecutor: MoralisExecutor
+  ): Promise<void> {
+    /**
+     *************************** Entity: CHAIN **************************
+     */
+    if (mExecutor.entities.chains.length > 0) {
+      let entityChain = await this.prisma.nLPEntity.findUnique({
+        where: {
+          witUuid: mExecutor.entities.chains[0],
+        },
+      });
+      if (!entityChain) {
+        entityChain = await this.prisma.nLPEntity.create({
+          data: {
+            witUuid: mExecutor.entities.chains[0],
+            name:
+              ENTITIES.find((i) => i.id === mExecutor.entities.chains[0])
+                .name ?? '',
+          },
+        });
+      }
+      await this.prisma.nLPEntityDecoded.create({
+        data: {
+          nlpEntityId: entityChain.id,
+          searchId,
+          values: WEB3Provider.resolveChain(mExecutor.entities.chains[0]),
+        },
+      });
+    }
+    /**
+     *************************** Entity: ACTION **************************
+     */
+    if (mExecutor.entities.actions.length > 0) {
+      let entityAction = await this.prisma.nLPEntity.findUnique({
+        where: {
+          witUuid: mExecutor.entities.actions[0],
+        },
+      });
+      if (!entityAction) {
+        entityAction = await this.prisma.nLPEntity.create({
+          data: {
+            witUuid: mExecutor.entities.actions[0],
+            name:
+              ENTITIES.find((i) => i.id === mExecutor.entities.actions[0])
+                .name ?? '',
+          },
+        });
+      }
+      await this.prisma.nLPEntityDecoded.create({
+        data: {
+          nlpEntityId: entityAction.id,
+          searchId,
+          values: query,
+        },
+      });
+    }
+    /**
+     *************************** Entity: PATTERNS **************************
+     */
+    await Promise.all([
+      ...mExecutor.entities.patterns.map(
+        async (p) => await writeEntityPattern(p)
+      ),
+    ]);
+
+    const writeEntityPattern = async (p: {
+      pattern_id: string;
+      value: string;
+    }) => {
+      let entityPattern = await this.prisma.nLPEntity.findUnique({
+        where: {
+          witUuid: p.pattern_id,
+        },
+      });
+      if (!entityPattern) {
+        entityPattern = await this.prisma.nLPEntity.create({
+          data: {
+            witUuid: p.pattern_id,
+            name: ENTITIES.find((e) => e.id === p.pattern_id).name ?? '',
+          },
+        });
+      }
+      await this.prisma.nLPEntityDecoded.create({
+        data: {
+          nlpEntityId: entityPattern.id,
+          searchId,
+          values: p.value,
+        },
+      });
+    };
+  }
+
+  /**
+   * Func to save Intent -metadata- (full search) to DDBB
+   * @param searchId
+   * @param query
+   * @param mExecutor
+   */
+  async saveIntentMeta(
+    searchId: number,
+    query: string,
+    mExecutor: MoralisExecutor
+  ): Promise<void> {
+    let intent = await this.prisma.nLPIntent.findUnique({
+      where: {
+        witUuid: mExecutor.intent,
+      },
+    });
+    if (!intent) {
+      intent = await this.prisma.nLPIntent.create({
+        data: {
+          witUuid: mExecutor.intent,
+          name: INTENTS.find((i) => i.id === mExecutor.intent).name ?? '',
+        },
+      });
+    }
+    await this.prisma.nLPIntentDecoded.create({
+      data: {
+        nlpIntentId: intent.id,
+        searchId,
+        value: query,
       },
     });
   }

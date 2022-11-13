@@ -18,4 +18,10 @@ export default class HttpErrors {
   ): MinimalError => ({
     error: msg,
   });
+
+  static DDBB = (
+    msg = 'Something went wrong: Database error.'
+  ): MinimalError => ({
+    error: msg,
+  });
 }
