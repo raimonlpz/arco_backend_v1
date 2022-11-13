@@ -48,7 +48,7 @@ export default class WIT {
           mExecutor.entities.actions.push(entities[key][0].id); // (max. 1 -first-)
         }
         // Nested entities check -> Recursive hack
-        resolver.entities[key].forEach((nestedKey) => {
+        entities[key].forEach((nestedKey) => {
           if (Object.keys(nestedKey.entities).length > 0) {
             scanEntities(nestedKey.entities);
           }

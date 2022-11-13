@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
@@ -48,11 +48,11 @@ export class SearchService implements IArcoEngine {
           // TO-DO: compose Moralis http response with Wit.ai action scheme to acknowledge the front-end about types
           return resolvedMExecutor.data as MoralisResponse;
         }
-        return HttpErrors.MORALIS();
+        throw new HttpException(HttpErrors.MORALIS(), 500);
       }
-      return HttpErrors.WIT_AI();
+      throw new HttpException(HttpErrors.WIT_AI(), 500);
     } catch (e) {
-      return HttpErrors.UNKNOWN();
+      throw new HttpException(HttpErrors.UNKNOWN(), 500);
     }
   }
 
