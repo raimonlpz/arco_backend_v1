@@ -24,6 +24,42 @@ export class SearchService implements IArcoEngine {
     private config: ConfigService
   ) {}
 
+  /**
+   * -Getters-
+   */
+  async getAllSearches(): Promise<Search[]> {
+    return this.prisma.search.findMany({
+      include: {
+        profile: true,
+        intents: true,
+        entities: true,
+      },
+    });
+  }
+
+  async getSearchesByUserId(userId: number): Promise<Search[]> {
+    const profile = await this.prisma.profile.findUnique({
+      where: {
+        userId: userId,
+      },
+    });
+    if (profile) {
+      return this.prisma.search.findMany({
+        where: {
+          profileId: profile.id,
+        },
+        include: {
+          intents: true,
+          entities: true,
+        },
+      });
+    }
+  }
+
+  /**
+   * -Posts-
+   */
+
   // 0 - User search (GUI -advanced- or NLP -raw text-)
   async searchAdvanced() {}
   // NLP Search (raw)
