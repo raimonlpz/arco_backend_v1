@@ -34,9 +34,7 @@ model Profile {
   avatarUrl  String?
   firstName  String?
   lastName   String?
-
-  hexAddress   HexAddress? @relation(fields: [hexAddressId], references: [id])
-  hexAddressId Int?        @unique
+  hexAddress String?
 
   user   User @relation(fields: [userId], references: [id])
   userId Int  @unique
@@ -211,8 +209,6 @@ model HexAddress {
 
   bookmarkedInSubs Sub[]
   bookmarkedInFavs Fav[]
-
-  profiles Profile[]
 
   @@map("addresses")
 }
