@@ -16,6 +16,15 @@ export class ProfileService {
     return profile;
   }
 
+  async getProfileById(userId: number): Promise<Profile> {
+    const profile = await this.prisma.profile.findUnique({
+      where: {
+        userId,
+      },
+    });
+    return profile;
+  }
+
   async editProfile(userId: number, dto: EditProfileDto): Promise<Profile> {
     const profile = await this.prisma.profile.update({
       where: {

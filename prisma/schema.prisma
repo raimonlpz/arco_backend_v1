@@ -30,6 +30,8 @@ model Profile {
   bio        String?
   urls       String[]
   profession String?
+  handle     String?
+  avatarUrl  String?
   firstName  String?
   lastName   String?
 

@@ -21,6 +21,14 @@ export class EditProfileDto {
   @IsOptional()
   urls?: string[];
 
+  @IsString()
+  @IsOptional()
+  handle?: string;
+
+  @IsString()
+  @IsOptional()
+  avatarUrl?: string;
+
   @IsInt()
   @IsOptional()
   hexAddressId?: number;
