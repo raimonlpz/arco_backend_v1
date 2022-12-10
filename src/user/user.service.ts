@@ -7,20 +7,29 @@ import { EditUserDto } from './dto';
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  async getUser(user: User): Promise<Profile & User> {
+  async getUser(user: User): Promise<Profile & User & { profileId: number }> {
     const profile = await this.prisma.profile.findUnique({
       where: {
         userId: user.id,
       },
+      include: {
+        followedBy: true,
+        following: true,
+      },
     });
 
-    // avoid redundancy in this Join
+    const response = {
+      ...user,
+      profileId: profile.id,
+    };
+
+    // avoid redundancy in this mixed Join
     delete profile.id;
     delete profile.userId;
 
     return {
       ...profile,
-      ...user,
+      ...response,
     };
   }
 

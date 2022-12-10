@@ -12,6 +12,10 @@ export class ProfileService {
       where: {
         userId,
       },
+      include: {
+        followedBy: true,
+        following: true,
+      },
     });
     return profile;
   }
@@ -20,6 +24,10 @@ export class ProfileService {
     const profile = await this.prisma.profile.findUnique({
       where: {
         userId,
+      },
+      include: {
+        followedBy: true,
+        following: true,
       },
     });
     return profile;

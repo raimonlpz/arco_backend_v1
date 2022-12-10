@@ -20,7 +20,9 @@ export class UserController {
 
   @HttpCode(HttpStatus.OK)
   @Get('me')
-  getMe(@GetUser() user: User): Promise<User & Profile> {
+  getMe(
+    @GetUser() user: User
+  ): Promise<Profile & User & { profileId: number }> {
     return this.userService.getUser(user);
   }
 
