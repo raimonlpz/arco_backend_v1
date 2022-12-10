@@ -7,7 +7,7 @@ import {
   Patch,
   UseGuards,
 } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { Profile, User } from '@prisma/client';
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
 import { EditUserDto } from './dto';
@@ -20,8 +20,8 @@ export class UserController {
 
   @HttpCode(HttpStatus.OK)
   @Get('me')
-  getMe(@GetUser() user: User) {
-    return user;
+  getMe(@GetUser() user: User): Promise<User & Profile> {
+    return this.userService.getUser(user);
   }
 
   @Patch()
