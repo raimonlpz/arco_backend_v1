@@ -33,6 +33,23 @@ export class ProfileService {
     return profile;
   }
 
+  async getProfilesById(profileIds: number[]): Promise<Profile[]> {
+    const profiles = await this.prisma.profile.findMany({
+      where: {
+        id: { in: profileIds },
+      },
+      include: {
+        user: true,
+      },
+    });
+    return profiles;
+  }
+
+  async getAllProfiles(): Promise<Profile[]> {
+    const profiles = await this.prisma.profile.findMany();
+    return profiles;
+  }
+
   async editProfile(userId: number, dto: EditProfileDto): Promise<Profile> {
     const profile = await this.prisma.profile.update({
       where: {

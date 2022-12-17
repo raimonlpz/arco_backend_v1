@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Patch,
+  Query,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -30,8 +31,18 @@ export class ProfileController {
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(NotFoundInterceptor)
   @Get(':id')
-  getProfileById(@Param('id') userId: string): Promise<Profile> {
+  getProfileByUserId(@Param('id') userId: string): Promise<Profile> {
     return this.profileService.getProfileById(parseInt(userId));
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('')
+  getAllProfiles(@Query() query: { ids?: string }): Promise<Profile[]> {
+    if (query.ids) {
+      const ids = query.ids.split(',').map((id: string) => parseInt(id));
+      return this.profileService.getProfilesById(ids);
+    }
+    return this.profileService.getAllProfiles();
   }
 
   @Patch('me')
