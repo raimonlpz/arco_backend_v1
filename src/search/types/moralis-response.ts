@@ -1,10 +1,8 @@
+import { Entity } from 'src/shared/nlp/entities';
+
 type MoralisResponse = {
-  total: number;
-  page: number;
-  page_size: number;
-  status: string;
-  result: any[];
-  cursor: string | null;
+  data: any; // Moralis dynamic response
+  action: Entity;
 };
 
 export { MoralisResponse };

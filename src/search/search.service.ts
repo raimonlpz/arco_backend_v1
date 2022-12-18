@@ -69,23 +69,32 @@ export class SearchService implements IArcoEngine {
   ): Promise<MinimalError | MoralisResponse> {
     const { query } = dto;
     try {
-      // nlp search processing
+      // NLP search processing
       const oracleResponse = await this.resolveWitAIOracle(query);
+
       if (oracleResponse.status === 200) {
         const mExecutor: MoralisExecutor = this.unpackWitAIResolver(
           oracleResponse.data
         );
+
         const resolvedMExecutor = await this.resolveMoralisExecutor(
           userId,
           mExecutor,
           query
         );
         if (resolvedMExecutor.status === 200) {
-          // TO-DO: compose Moralis http response with Wit.ai action scheme to acknowledge the front-end about types
-          return resolvedMExecutor.data as MoralisResponse;
+          // We compose Moralis http response with Wit.ai action scheme to acknowledge the front-end about types
+          const base = mExecutor.entities.actions[0];
+          const actionEntity = ENTITIES.find((e) => e.id === base);
+
+          return {
+            data: resolvedMExecutor.data,
+            action: actionEntity,
+          } as MoralisResponse;
         }
         throw new HttpException(HttpErrors.MORALIS(), 500);
       }
+
       throw new HttpException(HttpErrors.WIT_AI(), 500);
     } catch (e) {
       throw new HttpException(HttpErrors.UNKNOWN(), 500);
