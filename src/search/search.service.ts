@@ -83,7 +83,7 @@ export class SearchService implements IArcoEngine {
           query
         );
         if (resolvedMExecutor.status === 200) {
-          // We compose Moralis http response with Wit.ai action scheme to acknowledge the front-end about types
+          // We compose Moralis http response with Wit.ai action scheme ID/Code to acknowledge the front-end about types
           const base = mExecutor.entities.actions[0];
           const actionEntity = ENTITIES.find((e) => e.id === base);
 
