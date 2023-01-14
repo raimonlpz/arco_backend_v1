@@ -20,7 +20,10 @@ export default class WIT {
   static unpackResolver = (resolver: WITResolver): MoralisExecutor => {
     const mExecutor: MoralisExecutor = {
       // Scheme
-      intent: resolver.intents[0].id, // Intent appended (max. 1)
+      intent:
+        resolver.intents && resolver.intents.length > 0
+          ? resolver.intents[0].id
+          : '', // Intent appended (max. 1)
       entities: {
         actions: [],
         chains: [],

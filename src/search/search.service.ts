@@ -97,6 +97,7 @@ export class SearchService implements IArcoEngine {
 
       throw new HttpException(HttpErrors.WIT_AI(), 500);
     } catch (e) {
+      console.log(e);
       throw new HttpException(HttpErrors.UNKNOWN(), 500);
     }
   }
@@ -294,7 +295,7 @@ export class SearchService implements IArcoEngine {
       intent = await this.prisma.nLPIntent.create({
         data: {
           witUuid: mExecutor.intent,
-          name: INTENTS.find((i) => i.id === mExecutor.intent).name ?? '',
+          name: INTENTS.find((i) => i.id === mExecutor.intent)?.name ?? '',
         },
       });
     }
