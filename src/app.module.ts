@@ -5,6 +5,7 @@ import { UserModule } from './user/user.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { SearchModule } from './search/search.module';
 import { ProfileModule } from './profile/profile.module';
+import { FollowModule } from './follows/follow.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ProfileModule } from './profile/profile.module';
     SearchModule,
     PrismaModule,
     ProfileModule,
+    FollowModule,
   ],
   controllers: [],
   providers: [],
