@@ -13,7 +13,7 @@ import { MoralisExecutor } from './types/moralis-executor';
 import IArcoEngine from './interfaces/arco-engine';
 import { WEB3Provider } from 'src/shared/connectors/moralis';
 import { INTENTS } from 'src/shared/nlp/intents';
-import { Search } from '@prisma/client';
+import { Search, NLPIntentDecoded } from '@prisma/client';
 import { ENTITIES } from 'src/shared/nlp/entities';
 
 @Injectable()
@@ -33,6 +33,14 @@ export class SearchService implements IArcoEngine {
         profile: true,
         intents: true,
         entities: true,
+      },
+    });
+  }
+
+  async getSearchesByCategory(intentId: string): Promise<NLPIntentDecoded[]> {
+    return await this.prisma.nLPIntentDecoded.findMany({
+      where: {
+        nlpIntentId: Number(intentId),
       },
     });
   }
@@ -60,8 +68,6 @@ export class SearchService implements IArcoEngine {
    * -Posts-
    */
 
-  // 0 - User search (GUI -advanced- or NLP -raw text-)
-  async searchAdvanced() {}
   // NLP Search (raw)
   async searchRaw(
     userId: number,
@@ -82,6 +88,7 @@ export class SearchService implements IArcoEngine {
           mExecutor,
           query
         );
+
         if (resolvedMExecutor.status === 200) {
           // We compose Moralis http response with Wit.ai action scheme ID/Code to acknowledge the front-end about types
           const base = mExecutor.entities.actions[0];
@@ -90,6 +97,7 @@ export class SearchService implements IArcoEngine {
           return {
             data: resolvedMExecutor.data,
             action: actionEntity,
+            bookmarking: mExecutor,
           } as MoralisResponse;
         }
         throw new HttpException(HttpErrors.MORALIS(), 500);

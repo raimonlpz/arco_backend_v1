@@ -4,8 +4,6 @@ import { MinimalError, MoralisResponse, WITResolver } from '../types';
 import { MoralisExecutor } from '../types/moralis-executor';
 
 export default interface IArcoEngine {
-  // 0 - User search (GUI -advanced- or NLP -raw text-)
-  searchAdvanced(): void;
   searchRaw(
     userId: number,
     dto: RawSearchDto

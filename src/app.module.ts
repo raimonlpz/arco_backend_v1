@@ -6,6 +6,8 @@ import { PrismaModule } from './prisma/prisma.module';
 import { SearchModule } from './search/search.module';
 import { ProfileModule } from './profile/profile.module';
 import { FollowModule } from './follows/follow.module';
+import { FavoritesModule } from './favorites/favorite.module';
+import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { FollowModule } from './follows/follow.module';
     PrismaModule,
     ProfileModule,
     FollowModule,
+    FavoritesModule,
+    SubscriptionsModule,
   ],
   controllers: [],
   providers: [],

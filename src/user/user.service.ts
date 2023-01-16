@@ -15,6 +15,20 @@ export class UserService {
       include: {
         followedBy: true,
         following: true,
+        subscriptions: {
+          include: {
+            entities: true,
+            intents: true,
+            tags: true,
+          },
+        },
+        favorites: {
+          include: {
+            entities: true,
+            intents: true,
+            tags: true,
+          },
+        },
       },
     });
 
