@@ -16,11 +16,11 @@ import { JwtGuard } from '../auth/guard';
 import { RawSearchDto } from './dto';
 import { SearchService } from './search.service';
 
-@UseGuards(JwtGuard)
 @Controller('search')
 export class SearchController {
   constructor(private searchService: SearchService) {}
 
+  @UseGuards(JwtGuard)
   @HttpCode(HttpStatus.OK)
   @Get('category/:id')
   getSearchesByCategory(@Param('id') intentId: string) {
@@ -33,12 +33,14 @@ export class SearchController {
     return this.searchService.getAllSearches();
   }
 
+  @UseGuards(JwtGuard)
   @HttpCode(HttpStatus.OK)
   @Get('users/me')
   getMySearches(@GetUser('id') userId: number) {
     return this.searchService.getSearchesByUserId(userId);
   }
 
+  @UseGuards(JwtGuard)
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(NotFoundInterceptor)
   @Get('users/:id')
@@ -46,6 +48,7 @@ export class SearchController {
     return this.searchService.getSearchesByUserId(parseInt(userId));
   }
 
+  @UseGuards(JwtGuard)
   @HttpCode(HttpStatus.OK)
   @Post('raw')
   rawSearch(@GetUser('id') userId: number, @Body() dto: RawSearchDto) {
